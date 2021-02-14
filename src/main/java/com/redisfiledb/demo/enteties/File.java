@@ -5,6 +5,8 @@ import lombok.*;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
+import javax.persistence.Table;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -12,6 +14,7 @@ import javax.persistence.Entity;
 @NoArgsConstructor
 @Builder
 @Entity
+@Table(name = "files")
 @JsonIgnoreProperties({"file"})
 public class File extends BaseEntity {
 
@@ -24,7 +27,8 @@ public class File extends BaseEntity {
     @Column(name = "file_size")
     private Long fileSize;
 
-    @Column(name = "file")
+    @Lob
+    @Column(name = "file", columnDefinition = "BLOB")
     private byte[] file;
 
     private String downloadLink;
@@ -36,10 +40,10 @@ public class File extends BaseEntity {
     @Override
     public String toString() {
         return "File{" +
-                "fileName='" + fileName + '\'' +
-                ", fileExtension='" + fileExtension + '\'' +
-                ", fileSize=" + fileSize +
-                ", downloadLink='" + downloadLink + '\'' +
-                '}';
+            "fileName='" + fileName + '\'' +
+            ", fileExtension='" + fileExtension + '\'' +
+            ", fileSize=" + fileSize +
+            ", downloadLink='" + downloadLink + '\'' +
+            '}';
     }
 }

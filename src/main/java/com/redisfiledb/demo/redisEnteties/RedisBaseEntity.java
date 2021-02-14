@@ -19,10 +19,8 @@ public abstract class RedisBaseEntity {
     private Long id;
 
     @CreatedDate
-    @Column(name = "created_at")
-    private final Date createdDate = new Date();
+    private Date createdDate = new Date();
 
     @LastModifiedDate
-    @Column(name = "updated_at")
-    private final Date updatedDate = new Date();
+    private Date updatedDate = new Date();
 }

@@ -6,6 +6,7 @@ import com.redisfiledb.demo.redisEnteties.RedisEntityFile;
 import com.redisfiledb.demo.redisRepositories.RedisFileRepository;
 import com.redisfiledb.demo.redisRepositories.RedisFileRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -39,37 +40,44 @@ public class RedisController {
     ResponseEntity<byte[]> downloadFile(@RequestParam("fileName") String fileName) {
         Optional<RedisEntityFile> file = redisFileRepository.findRedisEntityFileByFileName(fileName);
         return file
-                .map(redisEntityFile -> ResponseEntity.ok(redisEntityFile.getFile()))
-                .orElseGet(() -> ResponseEntity.badRequest().build());
+            .map(redisEntityFile -> ResponseEntity.ok(redisEntityFile.getFile()))
+            .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @GetMapping(value = "/files")
     public ResponseEntity<?> getListOfFilesByFilter(
-            String dateFrom,
-            String dateTo,
-            String fileName,
-            String fileExtension
+        String dateFrom,
+        String dateTo,
+        String fileName,
+        String fileExtension
     ) throws ParseException {
-        Iterable<RedisEntityFile> redisEntityFileList = redisFileRepository.findAll();
-        System.out.println(redisFileRepository.count());
-        redisEntityFileList.forEach(System.out::println);
 
-        List<RedisEntityFile> list = redisFileRepositoryImpl.searchFilesByFilters(
-                dateFrom,
-                dateTo,
-                fileName,
-                fileExtension
-        );
+        RedisEntityFile redisEntityFile = new RedisEntityFile();
+
+        if (Objects.nonNull(fileName)) {
+            redisEntityFile.setFileName(fileName);
+        }
+        Example<RedisEntityFile> example = Example.of(redisEntityFile);
+//
+//        List<RedisEntityFile> list = redisFileRepositoryImpl.searchFilesByFilters(
+//                dateFrom,
+//                dateTo,
+//                fileName,
+//                fileExtension
+//        );
+
+//        redisFileRepository.findAll(example);
+//        System.out.println(redisFileRepository.findAll(example));
 
         return ResponseEntity
-                .ok()
-                .body(new SimpleJsonResponse(list));
+            .ok()
+            .body(new SimpleJsonResponse(redisFileRepository.findAll(example)));
     }
 
     @PostMapping(value = "/files", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> file(
-            @Valid @ModelAttribute FormFile formFile,
-            BindingResult bindingResult
+        @Valid @ModelAttribute FormFile formFile,
+        BindingResult bindingResult
     ) throws BindException, IOException {
         if (bindingResult.hasErrors()) {
             throw new BindException(bindingResult);
@@ -77,11 +85,11 @@ public class RedisController {
         MultipartFile multipartFile = formFile.getFile();
 
         RedisEntityFile file = new RedisEntityFile(
-                multipartFile.getOriginalFilename(),
-                Objects.requireNonNull(multipartFile.getOriginalFilename()).split("\\.")[1],
-                multipartFile.getSize(),
-                multipartFile.getBytes(),
-                "/redis/download-files?fileName=" + multipartFile.getOriginalFilename()
+            multipartFile.getOriginalFilename(),
+            Objects.requireNonNull(multipartFile.getOriginalFilename()).split("\\.")[1],
+            multipartFile.getSize(),
+            multipartFile.getBytes(),
+            "/redis/download-files?fileName=" + multipartFile.getOriginalFilename()
         );
 
         redisFileRepository.save(file);

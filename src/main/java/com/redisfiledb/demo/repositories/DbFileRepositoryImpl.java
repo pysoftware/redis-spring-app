@@ -1,11 +1,10 @@
-package com.redisfiledb.demo.redisRepositories;
+package com.redisfiledb.demo.repositories;
 
 
-import com.redisfiledb.demo.redisEnteties.RedisEntityFile;
+import com.redisfiledb.demo.enteties.File;
+import com.redisfiledb.demo.redisRepositories.CustomRedisFileRepository;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
@@ -19,36 +18,27 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.exact;
-import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.startsWith;
-
 @Component
-public class RedisFileRepositoryImpl implements CustomRedisFileRepository {
+public class DbFileRepositoryImpl implements CustomDbFileRepository {
+
+    private final EntityManager entityManager;
+
+    @Autowired
+    public DbFileRepositoryImpl(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
 
     @Override
-    public List<RedisEntityFile> searchFilesByFilters(
+    public List<File> searchFilesByFilters(
             String dateFrom,
             String dateTo,
             String fileName,
             String fileExtension
     ) throws ParseException {
-        RedisEntityFile redisEntityFile = new RedisEntityFile();
-
-        if (Objects.nonNull(fileName)) {
-            redisEntityFile.setFileName(fileName);
-        }
-        Example<RedisEntityFile> example = Example.of(redisEntityFile);
-
-        ExampleMatcher matcher = ExampleMatcher.matching()
-            .withMatcher("updatedDate", genericPropertyMatcher -> {
-                genericPropertyMatcher.
-            })
-            .withMatcher("score", exact());
-
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<RedisEntityFile> query = criteriaBuilder.createQuery(RedisEntityFile.class);
+        CriteriaQuery<File> query = criteriaBuilder.createQuery(File.class);
 
-        Root<RedisEntityFile> file = query.from(RedisEntityFile.class);
+        Root<File> file = query.from(File.class);
         List<Predicate> predicates = new ArrayList<>();
 
         if (Objects.nonNull(dateFrom) && Objects.nonNull(dateTo)) {
@@ -68,6 +58,7 @@ public class RedisFileRepositoryImpl implements CustomRedisFileRepository {
 
         query.select(file);
         query.where(predicates.toArray(new Predicate[0]));
+        System.out.println(predicates);
 
         return entityManager.createQuery(query).getResultList();
     }
