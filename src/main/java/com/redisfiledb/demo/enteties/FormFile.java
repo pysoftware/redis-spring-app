@@ -16,7 +16,4 @@ public class FormFile {
     @NotNull
     @FileSize(max = 15)
     private MultipartFile file;
-
-    @NotNull
-    private String name;
 }

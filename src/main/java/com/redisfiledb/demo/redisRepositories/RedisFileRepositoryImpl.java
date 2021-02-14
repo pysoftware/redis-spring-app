@@ -44,9 +44,7 @@ public class RedisFileRepositoryImpl implements CustomRedisFileRepository {
             Date from = DateUtils.parseDate(dateFrom, "yyyy-MM-dd HH:mm:ss", "dd.MM.yyyy");
             Date to = DateUtils.parseDate(dateTo, "yyyy-MM-dd HH:mm:ss", "dd.MM.yyyy");
 
-//            predicates.add(criteriaBuilder.greaterThanOrEqualTo(file.get("updated_at"), dateFrom));
-//            predicates.add(criteriaBuilder.lessThanOrEqualTo(file.get("updated_at"), dateTo));
-            predicates.add(criteriaBuilder.between(file.get("updatedAt"), from, to));
+            predicates.add(criteriaBuilder.between(file.get("updatedDate"), from, to));
         }
 
         if (Objects.nonNull(fileName)) {
@@ -55,8 +53,6 @@ public class RedisFileRepositoryImpl implements CustomRedisFileRepository {
 
         if (Objects.nonNull(fileExtension)) {
             predicates.add(criteriaBuilder.equal(file.get("fileExtension"), fileExtension));
-        } else {
-            predicates.add(criteriaBuilder.isNotNull(file.get("fileExtension")));
         }
 
         query.where(predicates.toArray(new Predicate[0]));

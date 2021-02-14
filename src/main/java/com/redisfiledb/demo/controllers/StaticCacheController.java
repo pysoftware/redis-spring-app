@@ -1,17 +1,23 @@
 package com.redisfiledb.demo.controllers;
 
 import com.redisfiledb.demo.enteties.File;
+import com.redisfiledb.demo.enteties.FormFile;
 import com.redisfiledb.demo.jsonResponses.SimpleJsonResponse;
-import com.redisfiledb.demo.redisEnteties.RedisEntityFile;
 import com.redisfiledb.demo.utilities.Cache;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
+import java.io.IOException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Date;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,28 +32,26 @@ public class StaticCacheController {
         this.cache = cache;
     }
 
-    @GetMapping(value = "/file", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @GetMapping(value = "/download-files", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public @ResponseBody
     ResponseEntity<byte[]> downloadFile(@RequestParam("fileName") String fileName) {
-        Optional<?> file = (Optional<?>) cache.getCachedItemByValue(fileName);
-        return file
-            .map(value -> ResponseEntity.ok(((File) value).getFile()))
-            .orElseGet(() -> ResponseEntity.badRequest().build());
+        Object file = cache.getCachedItemByValue(fileName);
+        if (file instanceof File) {
+            return ResponseEntity.ok(((File) file).getFile());
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
-    @GetMapping(value = "/db-files")
+    @GetMapping(value = "/files")
     public ResponseEntity<?> getListOfFilesByFilter(
-        String dateFrom,
-        String dateTo,
-        String fileName,
-        String fileExtension
+            String dateFrom,
+            String dateTo,
+            String fileName,
+            String fileExtension
     ) throws ParseException {
 
-        List<File> fileList = new ArrayList<>();
         Stream<Object> cachedItems = cache.getCachedObjects().values().stream();
-//            .filter()
-//            .filter()
-
         if (Objects.nonNull(dateFrom) && Objects.nonNull(dateTo)) {
             Date from = DateUtils.parseDate(dateFrom, "yyyy-MM-dd HH:mm:ss", "dd.MM.yyyy");
             Date to = DateUtils.parseDate(dateTo, "yyyy-MM-dd HH:mm:ss", "dd.MM.yyyy");
@@ -82,8 +86,30 @@ public class StaticCacheController {
         }
 
         return ResponseEntity
-            .ok()
-            .body(new SimpleJsonResponse(cachedItems.collect(Collectors.toList())));
+                .ok()
+                .body(new SimpleJsonResponse(cachedItems.collect(Collectors.toList())));
     }
 
+    @PostMapping(value = "/files", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> file(
+            @Valid @ModelAttribute FormFile formFile,
+            BindingResult bindingResult
+    ) throws BindException, IOException {
+        if (bindingResult.hasErrors()) {
+            throw new BindException(bindingResult);
+        }
+        MultipartFile multipartFile = formFile.getFile();
+
+        File file = new File(
+                multipartFile.getOriginalFilename(),
+                Objects.requireNonNull(multipartFile.getOriginalFilename()).split("\\.")[1],
+                multipartFile.getSize(),
+                multipartFile.getBytes(),
+                "/static-cache/download-files?fileName=" + multipartFile.getOriginalFilename()
+        );
+
+        cache.addCachableItem(file.getFileName(), file);
+
+        return ResponseEntity.ok().build();
+    }
 }

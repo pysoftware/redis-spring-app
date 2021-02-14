@@ -1,13 +1,10 @@
 package com.redisfiledb.demo.enteties;
 
-import com.redisfiledb.demo.validators.FileSize;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -15,6 +12,7 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @Builder
 @Entity
+@JsonIgnoreProperties({"file"})
 public class File extends BaseEntity {
 
     @Column(name = "file_name")
@@ -28,4 +26,20 @@ public class File extends BaseEntity {
 
     @Column(name = "file")
     private byte[] file;
+
+    private String downloadLink;
+
+    public String getFileSize() {
+        return Math.ceil((double) fileSize / 1024.0 / 1024.0) + "MB";
+    }
+
+    @Override
+    public String toString() {
+        return "File{" +
+                "fileName='" + fileName + '\'' +
+                ", fileExtension='" + fileExtension + '\'' +
+                ", fileSize=" + fileSize +
+                ", downloadLink='" + downloadLink + '\'' +
+                '}';
+    }
 }

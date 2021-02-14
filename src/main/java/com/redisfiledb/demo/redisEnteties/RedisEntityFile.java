@@ -30,4 +30,20 @@ public class RedisEntityFile extends RedisBaseEntity {
 
     @Column(name = "file")
     private byte[] file;
+
+    private String downloadLink;
+
+    public String getFileSize() {
+        return Math.ceil((double) fileSize / 1024.0 / 1024.0) + "MB";
+    }
+
+    @Override
+    public String toString() {
+        return "File{" +
+                "fileName='" + fileName + '\'' +
+                ", fileExtension='" + fileExtension + '\'' +
+                ", fileSize=" + fileSize +
+                ", downloadLink='" + downloadLink + '\'' +
+                '}';
+    }
 }

@@ -6,7 +6,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.Objects;
 
-class FileValidator implements ConstraintValidator<FileSize, MultipartFile> {
+class FileSizeValidator implements ConstraintValidator<FileSize, MultipartFile> {
 
     private long max;
 

@@ -16,10 +16,10 @@ public abstract class BaseEntity {
 
     @CreatedDate
     @Column(name = "created_at")
-    private final Date createdDate = new Date();
+    protected final Date createdDate = new Date();
 
     @LastModifiedDate
     @Column(name = "updated_at")
-    private final Date updatedDate = new Date();
+    protected final Date updatedDate = new Date();
 
 }

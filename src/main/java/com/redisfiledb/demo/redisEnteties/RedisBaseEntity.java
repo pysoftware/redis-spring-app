@@ -1,7 +1,6 @@
 package com.redisfiledb.demo.redisEnteties;
 
 import lombok.Data;
-import org.hibernate.annotations.Index;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.redis.core.index.Indexed;
