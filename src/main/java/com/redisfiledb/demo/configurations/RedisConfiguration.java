@@ -19,7 +19,10 @@ public class RedisConfiguration {
 
     @Bean
     public JedisConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("localhost", 6379);
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(
+            "localhost",
+            6379
+        );
 //        config.setPassword("sOmE_sEcUrE_pAsS");
         return new JedisConnectionFactory(config);
     }

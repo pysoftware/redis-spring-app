@@ -22,13 +22,13 @@ public class ValidationErrorResponse extends CustomResponse {
 
     public Map<String, String> getErrors() {
         return fieldErrors
-                .stream()
-                .collect(
-                        Collectors.toMap(
-                                FieldError::getField,
-                                e -> Objects.requireNonNullElse(e.getDefaultMessage(), "")
-                        )
-                );
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    FieldError::getField,
+                    e -> Objects.requireNonNullElse(e.getDefaultMessage(), "")
+                )
+            );
     }
 
 }

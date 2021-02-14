@@ -13,34 +13,41 @@ import com.redisfiledb.demo.validators.FileSize;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @AllArgsConstructor
 @Data
-@Validated
 class FormFile {
-    @NotNull(message = "required field")
+    @NotNull
     @FileSize(max = 15)
     private MultipartFile file;
+
+    @NotNull
+    private String name;
 }
 
-@org.springframework.web.bind.annotation.RestController
-public class RestController {
+@RestController
+public class MainRestController {
 
     final FilesRepository filesRepository;
     final RedisFileRepository redisFileRepository;
@@ -48,11 +55,11 @@ public class RestController {
     final Cache cache;
 
     @Autowired
-    public RestController(
-            FilesRepository filesRepository,
-            RedisFileRepository redisFileRepository,
-            RedisFileRepositoryImpl redisFileRepositoryImpl,
-            Cache cache
+    public MainRestController(
+        FilesRepository filesRepository,
+        RedisFileRepository redisFileRepository,
+        RedisFileRepositoryImpl redisFileRepositoryImpl,
+        Cache cache
     ) {
         this.filesRepository = filesRepository;
         this.redisFileRepository = redisFileRepository;
@@ -65,23 +72,23 @@ public class RestController {
     ResponseEntity<byte[]> downloadFile(@RequestParam("fileName") String fileName) {
         Optional<File> file = filesRepository.findFirstByFileName(fileName);
         return file
-                .map(value -> ResponseEntity.ok(value.getFile()))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+            .map(value -> ResponseEntity.ok(value.getFile()))
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping(value = "/db-files")
     public ResponseEntity<?> getListOfFilesByFilter(
-            String dateFrom,
-            String dateTo,
-            String fileName,
-            String fileExtension
+        String dateFrom,
+        String dateTo,
+        String fileName,
+        String fileExtension
     ) {
         try {
             List<RedisEntityFile> redisEntityFileList = redisFileRepositoryImpl.searchFilesByFilters(
-                    dateFrom,
-                    dateTo,
-                    fileName,
-                    fileExtension
+                dateFrom,
+                dateTo,
+                fileName,
+                fileExtension
             );
 
             return ResponseEntity.ok().body(new SimpleJsonResponse(redisEntityFileList));
@@ -99,17 +106,23 @@ public class RestController {
 
     @PostMapping(value = "/db-files")
     public ResponseEntity<?> dbFile(
-            @Valid File file,
-            BindingResult bindingResult
-    ) throws IOException, NullPointerException {
-
-        System.out.println(file);
+        @Valid @ModelAttribute FormFile file,
+        BindingResult bindingResult
+    ) throws IOException, NullPointerException, BindException {
 
         if (bindingResult.hasErrors()) {
-            return ResponseEntity
-                    .status(BAD_REQUEST)
-                    .body(new ValidationErrorResponse(BAD_REQUEST, bindingResult.getFieldErrors()));
+            throw new BindException(bindingResult);
         }
+
+        System.out.println("HERE");
+
+        System.out.println(bindingResult);
+//
+//        if (bindingResult.hasErrors()) {
+//            return ResponseEntity
+//                .status(BAD_REQUEST)
+//                .body(new ValidationErrorResponse(BAD_REQUEST, bindingResult.getFieldErrors()));
+//        }
 //        MultipartFile multipartFile = formFile.getFile();
 //        File file = new File(
 //                multipartFile.getOriginalFilename(),
@@ -125,8 +138,8 @@ public class RestController {
 
     @PostMapping(value = "/file", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> file(
-            @RequestParam("file") MultipartFile multipartFile,
-            BindingResult bindingResult
+        @RequestParam("file") MultipartFile multipartFile,
+        BindingResult bindingResult
     ) throws IOException, NullPointerException {
 //        redisFileRepository.findAllUsers(Sort.by().or)
 //        cache.addCachableItem();
@@ -134,15 +147,15 @@ public class RestController {
 //        fileValidator.validate(fileUploadModel, bindingResult);
         if (bindingResult.hasErrors()) {
             return ResponseEntity
-                    .status(BAD_REQUEST)
-                    .body(new ValidationErrorResponse(BAD_REQUEST, bindingResult.getFieldErrors()));
+                .status(BAD_REQUEST)
+                .body(new ValidationErrorResponse(BAD_REQUEST, bindingResult.getFieldErrors()));
         }
 
         RedisEntityFile file = new RedisEntityFile(
-                multipartFile.getOriginalFilename(),
-                Objects.requireNonNull(multipartFile.getOriginalFilename()).split("\\.")[1],
-                multipartFile.getSize(),
-                multipartFile.getBytes()
+            multipartFile.getOriginalFilename(),
+            Objects.requireNonNull(multipartFile.getOriginalFilename()).split("\\.")[1],
+            multipartFile.getSize(),
+            multipartFile.getBytes()
         );
 
 //        RedisEntityFile file = RedisEntityFile.builder()
