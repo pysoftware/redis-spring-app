@@ -1,50 +1,28 @@
 package com.redisfiledb.demo.controllers;
 
 import com.redisfiledb.demo.enteties.File;
+import com.redisfiledb.demo.enteties.FormFile;
 import com.redisfiledb.demo.jsonResponses.SimpleJsonResponse;
 import com.redisfiledb.demo.jsonResponses.ValidationErrorResponse;
 import com.redisfiledb.demo.redisEnteties.RedisEntityFile;
 import com.redisfiledb.demo.redisRepositories.RedisFileRepository;
 import com.redisfiledb.demo.redisRepositories.RedisFileRepositoryImpl;
 import com.redisfiledb.demo.repositories.FilesRepository;
-import com.redisfiledb.demo.redisRepositories.RedisFileRepository;
 import com.redisfiledb.demo.utilities.Cache;
-import com.redisfiledb.demo.validators.FileSize;
-import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-
-@AllArgsConstructor
-@Data
-class FormFile {
-    @NotNull
-    @FileSize(max = 15)
-    private MultipartFile file;
-
-    @NotNull
-    private String name;
-}
 
 @RestController
 public class MainRestController {
@@ -52,7 +30,6 @@ public class MainRestController {
     final FilesRepository filesRepository;
     final RedisFileRepository redisFileRepository;
     final RedisFileRepositoryImpl redisFileRepositoryImpl;
-    final Cache cache;
 
     @Autowired
     public MainRestController(
@@ -64,7 +41,6 @@ public class MainRestController {
         this.filesRepository = filesRepository;
         this.redisFileRepository = redisFileRepository;
         this.redisFileRepositoryImpl = redisFileRepositoryImpl;
-        this.cache = cache;
     }
 
     @GetMapping(value = "/file", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

@@ -1,6 +1,8 @@
 package com.redisfiledb.demo.enteties;
 
+import com.redisfiledb.demo.validators.FileSize;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -16,7 +18,6 @@ import javax.validation.constraints.NotNull;
 public class File extends BaseEntity {
 
     @Column(name = "file_name")
-    @NotNull
     private String fileName;
 
     @Column(name = "file_extension")

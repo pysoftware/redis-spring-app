@@ -27,4 +27,8 @@ public final class Cache {
         cachedObjects.remove(key);
         return true;
     }
+
+    public Object getCachedItemByValue(Object object) {
+        return cachedObjects.getOrDefault(object, null);
+    }
 }
