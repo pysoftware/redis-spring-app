@@ -21,6 +21,7 @@ public class RedisEntityFile extends RedisBaseEntity implements Serializable {
     @Indexed
     private String fileName;
 
+    @Indexed
     private String fileExtension;
 
     private Long fileSize;
