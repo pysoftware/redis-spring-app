@@ -1,13 +1,10 @@
 package com.redisfiledb.demo.controllers;
 
+import com.redisfiledb.demo.dbServices.DbFileService;
 import com.redisfiledb.demo.enteties.File;
 import com.redisfiledb.demo.enteties.FormFile;
 import com.redisfiledb.demo.jsonResponses.SimpleJsonResponse;
-import com.redisfiledb.demo.redisEnteties.RedisEntityFile;
-import com.redisfiledb.demo.redisRepositories.RedisFileRepositoryImpl;
-import com.redisfiledb.demo.repositories.DbFileRepositoryImpl;
-import com.redisfiledb.demo.repositories.FilesRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -20,29 +17,22 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/db")
+@RequiredArgsConstructor
 public class DbController {
 
-    final FilesRepository filesRepository;
-    final DbFileRepositoryImpl dbFileRepositoryImpl;
-
-    @Autowired
-    public DbController(FilesRepository filesRepository, DbFileRepositoryImpl dbFileRepositoryImpl) {
-        this.filesRepository = filesRepository;
-        this.dbFileRepositoryImpl = dbFileRepositoryImpl;
-    }
-
+    private final DbFileService dbFileService;
 
     @GetMapping(value = "/download-files", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public @ResponseBody
     ResponseEntity<byte[]> downloadFile(@RequestParam("fileName") String fileName) {
-        Optional<File> file = filesRepository.findFirstByFileName(fileName);
-        return file
-            .map(redisEntityFile -> ResponseEntity.ok(redisEntityFile.getFile()))
-            .orElseGet(() -> ResponseEntity.badRequest().build());
+        File file = dbFileService.findFileByFileName(fileName);
+        return Objects.requireNonNullElse(
+            ResponseEntity.ok(file.getFile()),
+            ResponseEntity.badRequest().build()
+        );
     }
 
     @GetMapping(value = "/files")
@@ -53,7 +43,7 @@ public class DbController {
         String fileExtension
     ) throws ParseException {
 
-        List<File> list = dbFileRepositoryImpl.searchFilesByFilters(
+        List<File> list = dbFileService.searchFilesByFilters(
             dateFrom,
             dateTo,
             fileName,
@@ -75,15 +65,7 @@ public class DbController {
         }
         MultipartFile multipartFile = formFile.getFile();
 
-        File file = new File(
-            multipartFile.getOriginalFilename(),
-            Objects.requireNonNull(multipartFile.getOriginalFilename()).split("\\.")[1],
-            multipartFile.getSize(),
-            multipartFile.getBytes(),
-            "/redis/download-files?fileName=" + multipartFile.getOriginalFilename()
-        );
-
-        filesRepository.save(file);
+        dbFileService.saveMultipartFile(multipartFile);
 
         return ResponseEntity.ok().build();
     }

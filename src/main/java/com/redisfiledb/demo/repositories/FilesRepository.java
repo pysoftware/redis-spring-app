@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface FilesRepository extends CrudRepository<File, Long> {
+public interface FilesRepository extends CrudRepository<File, Long>, CustomDbFileRepository {
 
     Optional<File> findFirstByFileName(String fileName);
 
