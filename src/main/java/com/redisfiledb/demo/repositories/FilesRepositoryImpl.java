@@ -2,7 +2,7 @@ package com.redisfiledb.demo.repositories;
 
 
 import com.redisfiledb.demo.enteties.File;
-import com.redisfiledb.demo.redisRepositories.CustomRedisFileRepository;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,21 +19,17 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-public class DbFileRepositoryImpl implements CustomDbFileRepository {
+@AllArgsConstructor
+public class FilesRepositoryImpl implements CustomDbFileRepository {
 
     private final EntityManager entityManager;
 
-    @Autowired
-    public DbFileRepositoryImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
     @Override
     public List<File> searchFilesByFilters(
-            String dateFrom,
-            String dateTo,
-            String fileName,
-            String fileExtension
+        String dateFrom,
+        String dateTo,
+        String fileName,
+        String fileExtension
     ) throws ParseException {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<File> query = criteriaBuilder.createQuery(File.class);
@@ -58,7 +54,6 @@ public class DbFileRepositoryImpl implements CustomDbFileRepository {
 
         query.select(file);
         query.where(predicates.toArray(new Predicate[0]));
-        System.out.println(predicates);
 
         return entityManager.createQuery(query).getResultList();
     }
